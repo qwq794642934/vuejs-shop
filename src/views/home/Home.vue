@@ -4,7 +4,8 @@
 		<control-bar ref="controlBar" v-if="isFixed" class="ontop" :titles="['流行', '新款', '精选']" @itemClick="tabClick" />
 		<scroll ref="scroll" @pullingUp="loadMore" :probe-type="3" :click="true" :pull-up-load="true" @scroll="contentScroll">
 			<!-- <h1>首页</h1> -->
-			<home-swiper :swiperList="banners" />
+			<!--  -->
+			<home-swiper :swiperList="banners" @swiperImgLoad="swiperImgLoad"/>
 			<recommend :recommends="recommends" />
 			<feature />
 			<control-bar ref="controlBar" :titles="['流行', '新款', '精选']" @itemClick="tabClick" />
@@ -60,24 +61,26 @@ export default {
 		});
 
 		// 轮播图图片监听['swiperImgLoad','reImgLoad']
-		this.$bus.$on(['swiperImgLoad','reImgLoad'], () => {
-			this.tabOffsetTop = this.$refs.controlBar.$el.offsetTop
-		
-		});
-
+		// this.$bus.$on(['swiperImgLoad', 'reImgLoad'], () => {
+		// 	refresh();
+		// 	this.tabOffsetTop = this.$refs.controlBar.$el.offsetTop;
+		// });
 	},
 	methods: {
 		// ************
 		// 	事件监听
 		// ***********
+		swiperImgLoad(){
+			console.log(this.$refs.controlBar.$el.offsetTop)
+			this.tabOffsetTop = this.$refs.controlBar.$el.offsetTop
+		},
 		loadMore() {
 			console.log('上拉加载更多！');
 			this.getHomeGoods(this.currentType);
-		
 		},
 		contentScroll(position) {
 			this.isBack = position < -1000;
-			this.isFixed = -position > this.tabOffsetTop
+			this.isFixed = -position > this.tabOffsetTop;
 		},
 		tabClick(index) {
 			const type = ['pop', 'new', 'sell'];
@@ -124,13 +127,22 @@ export default {
 			currentType: 'pop',
 			isBack: false,
 			tabOffsetTop: 0,
-			isFixed: false
+			isFixed: false,
+			saveY: 0
 		};
 	},
 	computed: {
 		showgoods() {
 			return this.goods[this.currentType].list;
 		}
+	},
+	activated(){
+		// console.log(this.saveY)
+		this.$refs.scroll.scrollToY(this.saveY)
+	},
+	deactivated(){
+		// console.log('deactivated')
+		this.saveY = this.$refs.scroll.getScrollY()
 	}
 };
 </script>
@@ -152,9 +164,8 @@ export default {
 	background-color: var(--color-tint);
 	color: #ffffff;
 }
-.ontop{
+.ontop {
 	z-index: 9;
 	position: relative;
 }
-
 </style>

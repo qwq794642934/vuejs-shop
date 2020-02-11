@@ -43,6 +43,8 @@ export default {
 				this.$emit('pullingUp');
 				// this.finishPullUp()
 			});
+			console.log(this.scroll)
+
 		}
 	},
 	methods: {
@@ -57,6 +59,12 @@ export default {
 			// this.scroll.refresh()
 			console.log('图片监听');
 			this.scroll && this.scroll.refresh();
+		},
+		scrollToY(y){
+			this.scroll && this.scroll.scrollTo(0, y, 0);
+		},
+		getScrollY(){
+			return this.scroll && this.scroll.y
 		}
 	},
 	data() {

@@ -1,7 +1,7 @@
 <template>
-	<div class="recommend">
+	<div class="recommend"><!-- @load="reImgLoad" -->
 		<div class="recommend-item" v-for="(item, index) in recommends" :key="index">
-			<img :src="item.image" alt="" @load="reImgLoad"/>
+			<img :src="item.image" alt="" />
 			<div class="text">{{ item.title }}</div>
 		</div>
 	</div>
@@ -24,14 +24,13 @@ export default {
 		}
 	},
 	methods:{
-		reImgLoad(){
-			if(!this.isLoad){
-				this.$bus.$emit('reImgLoad')
-				console.log('re')
-				this.isLoad =true
-			}
+		// reImgLoad(){
+		// 	if(!this.isLoad){
+		// 		this.$bus.$emit('reImgLoad')
+		// 		this.isLoad = true
+		// 	}
 
-		}
+		// }
 	}
 };
 </script>

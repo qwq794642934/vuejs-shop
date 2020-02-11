@@ -1,7 +1,11 @@
 <template>
 	<div>
 		<swiper>
-			<swiper-item v-for="(item, index) in swiperList" :key="index"><img :src="item.image" @load="swiperImgLoad" /></swiper-item>
+			<swiper-item 
+			v-for="(item, index) in swiperList" 
+			:key="index"><img 
+			:src="item.image" 
+			@load="swiperImgLoad" /></swiper-item>
 		</swiper>
 	</div>
 </template>
@@ -25,9 +29,10 @@ export default {
 	methods: {
 		swiperImgLoad() {
 			if(!this.isLoad){
-				this.$bus.$emit('swiperImgLoad');
+				// this.$bus.$emit('swiperImgLoad');
+				this.$emit('swiperImgLoad')
 				console.log('swi')
-				this.isLoad =true
+				this.isLoad = true
 			}
 
 		}
