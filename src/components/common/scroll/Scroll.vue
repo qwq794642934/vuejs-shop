@@ -41,9 +41,7 @@ export default {
 			this.scroll.on('pullingUp', () => {
 				// console.log('上拉加载更多')
 				this.$emit('pullingUp');
-				// this.finishPullUp()
 			});
-			console.log(this.scroll)
 
 		}
 	},
@@ -60,10 +58,11 @@ export default {
 			console.log('图片监听');
 			this.scroll && this.scroll.refresh();
 		},
-		scrollToY(y){
-			this.scroll && this.scroll.scrollTo(0, y, 0);
+		scrollToY(y,time){
+			this.scroll && this.scroll.scrollTo(0, y, time);
 		},
 		getScrollY(){
+			// return this.scroll ? this.scroll.y : 0
 			return this.scroll && this.scroll.y
 		}
 	},

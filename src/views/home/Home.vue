@@ -1,11 +1,11 @@
 <template>
 	<div id="home">
 		<nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
-		<control-bar ref="controlBar" v-if="isFixed" class="ontop" :titles="['流行', '新款', '精选']" @itemClick="tabClick" />
+		<control-bar ref="topcontrolBar" v-show="isFixed" class="ontop" :titles="['流行', '新款', '精选']" @itemClick="tabClick" />
 		<scroll ref="scroll" @pullingUp="loadMore" :probe-type="3" :click="true" :pull-up-load="true" @scroll="contentScroll">
 			<!-- <h1>首页</h1> -->
 			<!--  -->
-			<home-swiper :swiperList="banners" @swiperImgLoad="swiperImgLoad"/>
+			<home-swiper :swiper-list="banners" @swiperImgLoad="swiperImgLoad" />
 			<recommend :recommends="recommends" />
 			<feature />
 			<control-bar ref="controlBar" :titles="['流行', '新款', '精选']" @itemClick="tabClick" />
@@ -23,13 +23,12 @@ import Feature from './childComps/Feature';
 import ControlBar from 'Components/common/controlbar/ControlBar';
 import NavBar from 'Components/common/navbar/NavBar';
 import Scroll from 'Components/common/scroll/Scroll';
-import BackTop from 'Components/common/backtop/BackTop';
 
 import GoodsList from 'Components/content/goods/GoodList';
 
+// import { debounce } from 'Common/utils.js';
 import { getHomeMultidata, getHomeGoods } from 'Network/home';
-import { debounce } from 'Common/utils.js';
-import BS from 'better-scroll';
+import {itemListenerMixin, backTopMixin} from "Common/minxin"
 
 export default {
 	name: 'Home',
@@ -40,79 +39,7 @@ export default {
 		ControlBar,
 		NavBar,
 		Scroll,
-		BackTop,
 		GoodsList
-	},
-	created() {
-		// 1 请求多数据
-		this.getHomeMultidata();
-		//2.请求商品数据
-		this.getHomeGoods('new');
-		this.getHomeGoods('pop');
-		this.getHomeGoods('sell');
-	},
-	mounted() {
-		// 防抖函数使用
-		const refresh = debounce(this.$refs.scroll.refresh, 500);
-		//3.监听item图片加载完成
-		this.$bus.$on('itemImgLoad', () => {
-			// console.log('图片监听')
-			refresh();
-		});
-
-		// 轮播图图片监听['swiperImgLoad','reImgLoad']
-		// this.$bus.$on(['swiperImgLoad', 'reImgLoad'], () => {
-		// 	refresh();
-		// 	this.tabOffsetTop = this.$refs.controlBar.$el.offsetTop;
-		// });
-	},
-	methods: {
-		// ************
-		// 	事件监听
-		// ***********
-		swiperImgLoad(){
-			console.log(this.$refs.controlBar.$el.offsetTop)
-			this.tabOffsetTop = this.$refs.controlBar.$el.offsetTop
-		},
-		loadMore() {
-			console.log('上拉加载更多！');
-			this.getHomeGoods(this.currentType);
-		},
-		contentScroll(position) {
-			this.isBack = position < -1000;
-			this.isFixed = -position > this.tabOffsetTop;
-		},
-		tabClick(index) {
-			const type = ['pop', 'new', 'sell'];
-			this.currentType = type[index];
-		},
-		topClick() {
-			// console.log(this.$refs.scroll)
-			this.$refs.scroll.scrollTo(0, 0, 1000);
-		},
-		/*************************
-		 *    网络请求           **
-		 *************************/
-		getHomeMultidata() {
-			getHomeMultidata()
-				.then(res => {
-					// console.log(res)
-					this.banners = res && res.data && res.data.banner && res.data.banner.list;
-					this.recommends = res && res.data && res.data.recommend && res.data.recommend.list;
-				})
-				.catch(err => console.log(err));
-		},
-		getHomeGoods(type) {
-			const page = this.goods[type].page + 1;
-			getHomeGoods(type, page).then(res => {
-				const data = res && res.data && res.data.list;
-				this.goods[type].list.push(...data);
-				this.goods[type].page += 1;
-				// this.scroll.finishPullUp()
-				// 完成上拉加载更多
-				this.$refs.scroll.finishPullUp();
-			});
-		}
 	},
 	data() {
 		return {
@@ -125,24 +52,88 @@ export default {
 				sell: { page: 0, list: [] }
 			},
 			currentType: 'pop',
-			isBack: false,
 			tabOffsetTop: 0,
 			isFixed: false,
-			saveY: 0
+			saveY: 0,
+
 		};
+	},
+	mixins:[itemListenerMixin, backTopMixin],
+	created() {
+		// 1 请求多数据
+		this.getHomeMultidata();
+		//2.请求商品数据
+		this.getHomeGoods('new');
+		this.getHomeGoods('pop');
+		this.getHomeGoods('sell');
+	},
+	mounted() {
+
+	},
+	activated() {
+		console.log(this.saveY);
+		this.$refs.scroll.refresh();
+		this.$refs.scroll.scrollToY(this.saveY);
+	},
+	deactivated() {
+		console.log(this.saveY, 'deactivated');
+		this.saveY = this.$refs.scroll.getScrollY();
+
+		this.$bus.$off('itemImgLoad', this.itemImagListener);
+	},
+	methods: {
+		// ************
+		// 	事件监听
+		// ***********
+		swiperImgLoad() {
+			this.newRefresh()
+			// this.$refs.scroll.refresh();
+			console.log(this.$refs.controlBar.$el.offsetTop);
+			if (this.$refs.controlBar.$el.offsetTop >= 637) {
+				this.tabOffsetTop = this.$refs.controlBar.$el.offsetTop;
+			} else {
+				this.tabOffsetTop = 637;
+			}
+		},
+		loadMore() {
+			this.getHomeGoods(this.currentType);
+		},
+		contentScroll(position) {
+			this.listenShowBackTop(-position)
+			this.isFixed = -position > this.tabOffsetTop;
+		},
+		tabClick(index) {
+			const type = ['pop', 'new', 'sell'];
+			this.currentType = type[index];
+			this.$refs.topcontrolBar.currentIndex = index;
+			this.$refs.controlBar.currentIndex = index;
+		},
+
+		/*************************
+		 *    网络请求           **
+		 *************************/
+		getHomeMultidata() {
+			getHomeMultidata().then(res => {
+				// console.log(res)
+				this.banners = res && res.data && res.data.banner && res.data.banner.list;
+				this.recommends = res && res.data && res.data.recommend && res.data.recommend.list;
+			});
+		},
+		getHomeGoods(type) {
+			const page = this.goods[type].page + 1;
+			getHomeGoods(type, page).then(res => {
+				const data = res && res.data && res.data.list;
+				this.goods[type].list.push(...data);
+				this.goods[type].page += 1;
+				// 完成上拉加载更多
+				this.$refs.scroll.finishPullUp();
+			});
+		}
 	},
 	computed: {
 		showgoods() {
 			return this.goods[this.currentType].list;
 		}
-	},
-	activated(){
-		// console.log(this.saveY)
-		this.$refs.scroll.scrollToY(this.saveY)
-	},
-	deactivated(){
-		// console.log('deactivated')
-		this.saveY = this.$refs.scroll.getScrollY()
 	}
 };
 </script>

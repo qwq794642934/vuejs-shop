@@ -1,17 +1,13 @@
 <template>
-	<div>
-		<swiper>
-			<swiper-item 
-			v-for="(item, index) in swiperList" 
-			:key="index"><img 
-			:src="item.image" 
-			@load="swiperImgLoad" /></swiper-item>
+		<swiper ref="swiper" v-if="swiperList.length">
+			<swiper-item v-for="(item, index) in swiperList" :key="index">
+				<img :src="item.image" @load="swiperImgLoad"/>
+			</swiper-item>
 		</swiper>
-	</div>
 </template>
 
 <script>
-import { Swiper, SwiperItem, MySwiper } from 'Components/common/swiper';
+import { Swiper, SwiperItem} from 'Components/common/swiper';
 export default {
 	name: 'homeswiper',
 	components: {
@@ -28,19 +24,27 @@ export default {
 	},
 	methods: {
 		swiperImgLoad() {
-			if(!this.isLoad){
+			if (!this.isLoad) {
 				// this.$bus.$emit('swiperImgLoad');
-				this.$emit('swiperImgLoad')
-				console.log('swi')
-				this.isLoad = true
+				this.$emit('swiperImgLoad');
+				console.log('swi');
+				this.isLoad = true;
 			}
-
-		}
+		},
+		stopTimer() {
+				    this.$refs.swiper.stopTimer()
+		      },
+		startTimer() {
+				    if (this.$refs.swiper) {
+		          this.$refs.swiper.startTimer()
+		        }
+		      }
+		
 	},
-	data(){
+	data() {
 		return {
-			isLoad : false
-		}
+			isLoad: false
+		};
 	}
 };
 </script>

@@ -1,6 +1,6 @@
 <template>
-	<div class="goods">
-		<img :src="getimg" alt="" @load="imgLoad" />
+	<div class="goods" @click="itemClick(goodItem.iid ||goodItem.item_id)">
+		<img v-lazy="getImg" alt="" @load="imgLoad" />
 		<div class="goods-info">
 			<p class="title">{{ goodItem.title }}</p>
 			<span class="price">￥{{ goodItem.price }}</span>
@@ -21,14 +21,23 @@ export default {
 		}
 	},
 	computed: {
-		getimg() {
-			return this.goodItem.show.img || this.goodItem.imge || this.goodItem.img;
+		getImg() {
+			return  this.goodItem.image || this.goodItem.show.img || this.goodItem.img
 		}
 	},
 	methods: {
 		imgLoad() {
 			// console.log('图片加载完成')
 			this.$bus.$emit('itemImgLoad');
+		},
+		itemClick(iid) {
+			console.log('详情页点击', iid);
+			this.$router.push({
+				path: '/detail',
+				query: {
+					iid
+				}
+			});
 		}
 	}
 };
