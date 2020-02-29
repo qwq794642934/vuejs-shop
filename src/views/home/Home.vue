@@ -20,15 +20,12 @@ import HomeSwiper from './childComps/HomeSwiper';
 import Recommend from './childComps/Recommend';
 import Feature from './childComps/Feature';
 
-import ControlBar from 'Components/common/controlbar/ControlBar';
 import NavBar from 'Components/common/navbar/NavBar';
-import Scroll from 'Components/common/scroll/Scroll';
 
-import GoodsList from 'Components/content/goods/GoodList';
-
-// import { debounce } from 'Common/utils.js';
 import { getHomeMultidata, getHomeGoods } from 'Network/home';
-import {itemListenerMixin, backTopMixin} from "Common/minxin"
+import {itemListenerMixin,
+backTopMixin, controlBar,
+goodList, scroll} from "Common/minxin"
 
 export default {
 	name: 'Home',
@@ -36,10 +33,7 @@ export default {
 		HomeSwiper,
 		Recommend,
 		Feature,
-		ControlBar,
 		NavBar,
-		Scroll,
-		GoodsList
 	},
 	data() {
 		return {
@@ -51,14 +45,12 @@ export default {
 				new: { page: 0, list: [] },
 				sell: { page: 0, list: [] }
 			},
-			currentType: 'pop',
 			tabOffsetTop: 0,
-			isFixed: false,
 			saveY: 0,
 
 		};
 	},
-	mixins:[itemListenerMixin, backTopMixin],
+	mixins:[itemListenerMixin, backTopMixin, controlBar, goodList, scroll],
 	created() {
 		// 1 请求多数据
 		this.getHomeMultidata();
@@ -89,6 +81,7 @@ export default {
 			this.newRefresh()
 			// this.$refs.scroll.refresh();
 			console.log(this.$refs.controlBar.$el.offsetTop);
+			
 			if (this.$refs.controlBar.$el.offsetTop >= 637) {
 				this.tabOffsetTop = this.$refs.controlBar.$el.offsetTop;
 			} else {
@@ -98,16 +91,8 @@ export default {
 		loadMore() {
 			this.getHomeGoods(this.currentType);
 		},
-		contentScroll(position) {
-			this.listenShowBackTop(-position)
-			this.isFixed = -position > this.tabOffsetTop;
-		},
-		tabClick(index) {
-			const type = ['pop', 'new', 'sell'];
-			this.currentType = type[index];
-			this.$refs.topcontrolBar.currentIndex = index;
-			this.$refs.controlBar.currentIndex = index;
-		},
+
+
 
 		/*************************
 		 *    网络请求           **
